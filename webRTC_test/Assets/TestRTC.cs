@@ -8,23 +8,28 @@ public class TestRTC : MonoBehaviour
 {
     [SerializeField] Text sendText;
     [SerializeField] Text recieveText;
+    [SerializeField] Text _offerSDPText;
+    [SerializeField] Text _answerSDPText;
 
     RTCPeerConnection localConnection;
     RTCPeerConnection remoteConnection;
 
-    private RTCDataChannel dataChannel, remoteDataChannel;
+    private RTCDataChannel localDataChannel, remoteDataChannel;
+
+    List<RTCIceCandidate> _localIceCandidate=new List<RTCIceCandidate>();
+    List<RTCIceCandidate> _remoteIceCandidate=new List<RTCIceCandidate>();
 
     private RTCOfferOptions OfferOptions = new RTCOfferOptions
     {
-        iceRestart = false,
+        iceRestart = true,
         offerToReceiveAudio = true,
         offerToReceiveVideo = false
     };
     private RTCAnswerOptions AnswerOptions = new RTCAnswerOptions
     {
-        iceRestart = false,
+        iceRestart = true,
     };
-    private DelegateOnMessage onDataChannelMessage;
+    private DelegateOnMessage onDataChannelMessage;//データチャンネル受信時のコールバック
 
     private void Awake()
     {
@@ -39,15 +44,21 @@ public class TestRTC : MonoBehaviour
         WebRTC.Finalize();
     }
 
-    //ピアの接続をする
-    IEnumerator CreatePeer()
+    //ピアの作成をする
+    void CreatePeer()
     {
         //ローカル
-        localConnection = new RTCPeerConnection();
+        RTCConfiguration pc_config=new RTCConfiguration();
+        var server = new RTCIceServer();
+        server.urls =new string[] { "stun:stun.webrtc.ecl.ntt.com:3478" };
+        pc_config.iceServers =new RTCIceServer[] {
+            server
+        };
+        localConnection = new RTCPeerConnection(ref pc_config);
         RTCDataChannelInit conf = new RTCDataChannelInit(true);
-        dataChannel= localConnection.CreateDataChannel("send",ref conf);
-        dataChannel.OnOpen = new DelegateOnOpen(() => { Debug.Log("localOpen"); });
-        dataChannel.OnClose = new DelegateOnClose(() => { Debug.Log("localClose"); });
+        localDataChannel= localConnection.CreateDataChannel("send",ref conf);
+        localDataChannel.OnOpen = new DelegateOnOpen(() => { Debug.Log("localOpen"); });
+        localDataChannel.OnClose = new DelegateOnClose(() => { Debug.Log("localClose"); });
         localConnection.OnIceConnectionChange = 
             new DelegateOnIceConnectionChange(state=> { OnIceConnectionChange(localConnection, state); });
 
@@ -63,35 +74,142 @@ public class TestRTC : MonoBehaviour
             new DelegateOnIceConnectionChange(state => { OnIceConnectionChange(remoteConnection, state); });
 
         //ICEの登録
-        localConnection.OnIceCandidate = new DelegateOnIceCandidate(candidate => { remoteConnection.AddIceCandidate(ref candidate); });
-        remoteConnection.OnIceCandidate = new DelegateOnIceCandidate(candidate => { localConnection.AddIceCandidate(ref candidate); });
+        localConnection.OnIceCandidate = new DelegateOnIceCandidate(candidate => {
+            if (!string.IsNullOrEmpty(candidate.candidate))
+            {
+                _localIceCandidate.Add(candidate);
+                //remoteConnection.AddIceCandidate(ref candidate);
+                Debug.Log("add ice from local to remote" + candidate.candidate);
+            }
+            else
+            {
+                Debug.Log("end ice candidate");
+            }
+        });
+        remoteConnection.OnIceCandidate = new DelegateOnIceCandidate(candidate =>
+        {
+            if (!string.IsNullOrEmpty(candidate.candidate))
+            {
+                _remoteIceCandidate.Add(candidate);
+                //localConnection.AddIceCandidate(ref candidate);
+                Debug.Log("add ice from remote to local:" + candidate.candidate);
+            }
+            else
+            {
+                Debug.Log("end ice candidate");
+            }
+        });
 
-        //SDPの交換
+        Debug.Log("crete peer");
+    }
+
+    RTCSessionDescription ConvertText2desc(Text target, bool isOffer)
+    {
+        var sdp = target.text;
+        var result = new RTCSessionDescription();
+        result.type = (isOffer) ? RTCSdpType.Offer : RTCSdpType.Answer;
+        result.sdp = sdp;
+        return result;
+    }
+    void TextSDP(RTCSessionDescription session,Text text)
+    {
+        try
+        {
+            text.text = session.sdp;
+            Debug.Log(text.text);
+        }
+        catch
+        {
+            Debug.Log("miss get desc");
+        }
+    }
+    IEnumerator CreateOffer()
+    {
         //オファー
         var op1 = localConnection.CreateOffer(ref OfferOptions);
         yield return op1;
         var op2 = localConnection.SetLocalDescription(ref op1.desc);
         yield return op2;
-        var op3 = remoteConnection.SetRemoteDescription(ref op1.desc);
-        yield return op3;
+        if (!op1.isError)
+        {
+            TextSDP(op1.desc,_offerSDPText);
+        }
+        else
+        {
+            Debug.Log("error offer");
+        }
+    }
+    void RecieveOffer()
+    {
+        var offer = ConvertText2desc(_offerSDPText, true);
+        try
+        {
+            Debug.Log($"recieve offer:{_offerSDPText.text}");
+            remoteConnection.SetRemoteDescription(ref offer);
+            StartCoroutine(CreateAnswer());
+        }
+        catch
+        {
+            Debug.Log("cant offer recieve");
+        }
+    }
+
+    IEnumerator CreateAnswer()
+    {
         //アンサー
         var op4 = remoteConnection.CreateAnswer(ref AnswerOptions);
         yield return op4;
         var op5 = remoteConnection.SetLocalDescription(ref op4.desc);
         yield return op5;
-        var op6 = localConnection.SetRemoteDescription(ref op4.desc);
-        yield return op6;
+        TextSDP(op4.desc,_answerSDPText);
+        Debug.Log("create answer");
+    }
+
+    void RecieveAnswer()
+    {
+        var answer = ConvertText2desc(_answerSDPText, false);
+        try
+        {
+            localConnection.SetRemoteDescription(ref answer);
+            Debug.Log("recieved answere");
+
+        }
+        catch
+        {
+            Debug.Log("cant answer recieve");
+        }
+    }
+
+    public void ExchengeIceCandiate()
+    {
+        _localIceCandidate.ForEach(x => remoteConnection.AddIceCandidate(ref x));
+        _remoteIceCandidate.ForEach(x => localConnection.AddIceCandidate(ref x));
     }
 
     public void OnclickCreatePeer()
     {
-        StartCoroutine(CreatePeer());
+        CreatePeer();
+    }
+
+    public void OnclickCreateOffer()
+    {
+        StartCoroutine(CreateOffer());
+    }
+
+    public void OnclickRecieveOffer()
+    {
+        RecieveOffer();
+    }
+    public void OnclickRecieveAnswer()
+    {
+        RecieveAnswer();
     }
 
     public void SendMsg()
     {
-        dataChannel.Send(sendText.text);
+        localDataChannel.Send(sendText.text);
     }
+
 
     //裏方======================================
     void OnIceConnectionChange(RTCPeerConnection pc, RTCIceConnectionState state)
@@ -134,6 +252,6 @@ public class TestRTC : MonoBehaviour
 
     string GetName(RTCPeerConnection pc)
     {
-        return (pc == localConnection) ? "pc1" : "pc2";
+        return (pc == localConnection) ? "localConnection" : "remoteConnection";
     }
 }
