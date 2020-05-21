@@ -7,22 +7,38 @@ public class NCMBTest : MonoBehaviour
 {
     [SerializeField] string serchId;
     [SerializeField] string message;
-    
+
+    NCMBObject myObject;
+
     private void Start()
     {
         
     }
-
+    
     [ContextMenu("addTestClass")]
     void AddTestClass()
     {
-        NCMBObject testclass = new NCMBObject("TestClass");
-        testclass["message"] = message;
-        testclass["id"] = serchId;
-        testclass.SaveAsync();
+
+        myObject = new NCMBObject("TestClass");
+        myObject["message"] = message;
+        myObject["id"] = serchId;
+        myObject.SaveAsync((NCMBException e) => {
+            if (e != null)
+            {
+
+            }
+            else
+            {
+                LogObj();
+            }
+        });
     }
 
-
+    [ContextMenu("logObj")]
+    void LogObj()
+    {
+        Debug.Log(myObject.ObjectId);
+    }
 
     [ContextMenu("LoadTestClass")]
     void LoadTestClassData()
