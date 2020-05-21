@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using NCMB;
+using System;
+using System.Threading.Tasks;
 
 //サーバーに送るデータ
 [System.Serializable]
@@ -14,8 +16,7 @@ public class RTCSendData
 
     public DATATYPE _datatype;
     public string _sdp;
-    public List<string> _candidates_offer = new List<string>();
-    public List<string> _candidates_answer = new List<string>();
+    public List<string> candidate = new List<string>();
     public RTCSendData(DATATYPE datatype,string sdp)
     {
         _sdp = sdp;
@@ -25,20 +26,29 @@ public class RTCSendData
 
 public class NCMB_RTC
 {
-    public static NCMBObject CreateObject(string serchID,string json)
+
+    public static NCMBObject CreateObject(string serchID,bool isoffer,string json)
     {
         NCMBObject myclass = new NCMBObject("NCMB_RTC");
-        myclass["_serchID"]=serchID;
-        myclass["json"]=json;
+        myclass["serchID"] =serchID;
+        if (isoffer)
+        {
+            myclass["json_offer"] = json;
+        }
+        else
+        {
+            myclass["json_answer"] = json;
+        }
         return myclass;
     }
 
-    public static NCMBObject GetObject(string serchID)
+    public static void GetObject(string serchID, Action<NCMBObject> act)
     {
         NCMBQuery<NCMBObject> query = new NCMBQuery<NCMBObject>("NCMB_RTC");
-        query.WhereEqualTo("_serchID", serchID);
+        query.WhereEqualTo("serchID", serchID);
         NCMBObject tempObj = null;
-        query.FindAsync((List<NCMBObject> objlist, NCMBException e) => {
+        query.FindAsync((List<NCMBObject> objlist, NCMBException e) =>
+        {
             if (e != null)
             {
                 Debug.Log("error");
@@ -47,11 +57,12 @@ public class NCMB_RTC
             {
                 foreach (var obj in objlist)
                 {
-                    tempObj = obj;
+                    act.Invoke(obj);
+                    Debug.Log("オブジェクトID"+obj.ObjectId);
+                    break;
                 }
             }
         });
-        return tempObj;
     }
 
     public static void GetCount()
