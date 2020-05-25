@@ -14,6 +14,7 @@ public class MatchingNCMB : MonoBehaviour
     public NCMB_RTC _SignalingNCMB { get { return _signalingNCMB; } }
     public List<NCMBObject> _serchObjList { get; private set; } = new List<NCMBObject>();
     [SerializeField] string _roomName;
+    [SerializeField] string _hostName;
     public bool _CreatedMyObj { get { return _SignalingNCMB._created; } }
 
     private void Awake()
@@ -21,10 +22,10 @@ public class MatchingNCMB : MonoBehaviour
         _roomName= StringUtils.GeneratePassword(8);
     }
 
-    void CreateNCMB(string roomName)
+    public void CreateNCMB(string roomName,string hostName)
     {
         _signalingNCMB = new NCMB_RTC();
-        var obj = _SignalingNCMB.CreateObject(roomName);
+        var obj = _SignalingNCMB.CreateObject(roomName,hostName);
         var json = JsonConverter.ToJson(new NCMBStateData( NCMBStateData.MyNCMBstate.CREATEDROOM));
         obj= NCMB_RTC.SetJson_connectState(obj,json);
         _SignalingNCMB.SaveObject(obj);
@@ -48,7 +49,7 @@ public class MatchingNCMB : MonoBehaviour
     #region onclick
     public void CreateNCMB_onclick()
     {
-        CreateNCMB(_roomName);
+        CreateNCMB(_roomName,_hostName);
     }
     public void SerchNCMB_onclick()
     {

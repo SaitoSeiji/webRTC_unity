@@ -71,14 +71,16 @@ public class NCMB_RTC
     }
 
     //myclass["serchID"]
+    //myclass["hostName"]
     //myclass["json_offer"]
     //myclass["json_answer"]
     //["connectState"]
 
-    public NCMBObject CreateObject(string serchID)
+    public NCMBObject CreateObject(string serchID,string hostName)
     {
         NCMBObject myclass = new NCMBObject("NCMB_RTC");
         myclass["serchID"] = serchID;
+        myclass["hostName"] = hostName;
         return myclass;
     }
 
