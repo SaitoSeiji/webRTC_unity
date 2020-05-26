@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UIController : SingletonMonoBehaviour<UIController>
+public class UIController : MonoBehaviour
 {
     Stack<UIBase> _opnedUIStack = new Stack<UIBase>();
     int _TopSortOrder { get { return _opnedUIStack.Count; } }
@@ -53,6 +53,7 @@ public class UIController : SingletonMonoBehaviour<UIController>
         }
 
         _opnedUIStack.Push(next);
+        next.SetUIController(this);
         next.SetUIState(UIBase.UIState.ACTIVE);
         next.SetSortOrder(_TopSortOrder);
 

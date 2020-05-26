@@ -70,6 +70,12 @@ public class NCMB_RTC
         }
     }
 
+    static string _objKey_serchID = "serchID";
+    static string _objKey_hostName = "hostName";
+    static string _objKey_json_offer = "json_offer";
+    static string _objKey_json_answer = "json_answer";
+    static string _objKey_json_connectState = "connectState";
+
     //myclass["serchID"]
     //myclass["hostName"]
     //myclass["json_offer"]
@@ -79,8 +85,8 @@ public class NCMB_RTC
     public NCMBObject CreateObject(string serchID,string hostName)
     {
         NCMBObject myclass = new NCMBObject("NCMB_RTC");
-        myclass["serchID"] = serchID;
-        myclass["hostName"] = hostName;
+        myclass[_objKey_serchID] = serchID;
+        myclass[_objKey_hostName] = hostName;
         return myclass;
     }
 
@@ -190,11 +196,11 @@ public class NCMB_RTC
     {
         if (isoffer)
         {
-            obj["json_offer"] = json;
+            obj[_objKey_json_offer] = json;
         }
         else
         {
-            obj["json_answer"] = json;
+            obj[_objKey_json_answer] = json;
         }
         return obj;
     }
@@ -203,22 +209,27 @@ public class NCMB_RTC
     {
         if (isoffer)
         {
-            return obj["json_answer"].ToString();
+            return obj[_objKey_json_answer].ToString();
         }
         else
         {
-            return obj["json_offer"].ToString();
+            return obj[_objKey_json_offer].ToString();
         }
     }
 
     public static NCMBObject SetJson_connectState(NCMBObject obj, string json)
     {
-        obj["connectState"] = json;
+        obj[_objKey_json_connectState] = json;
         return obj;
     }
     public static string GetJson_connectState(NCMBObject obj)
     {
-        return obj["connectState"].ToString();
+        return obj[_objKey_json_connectState].ToString();
+    }
+
+    public static string Get_hostName(NCMBObject obj)
+    {
+        return obj[_objKey_hostName].ToString();
     }
 
     public static void GetObject(string serchID, Action<List<NCMBObject>> act)

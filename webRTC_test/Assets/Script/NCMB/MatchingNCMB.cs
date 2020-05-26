@@ -31,15 +31,16 @@ public class MatchingNCMB : MonoBehaviour
         _SignalingNCMB.SaveObject(obj);
     }
 
-    void SerchNCMB(string roomName)
+    public void SerchNCMB(string roomName,Action additionalAct=null)
     {
         NCMB_RTC.GetObject(roomName, (List<NCMBObject> list) =>
         {
             _serchObjList = list;
+            additionalAct?.Invoke();
         });
     }
 
-    void SelectNCMB(NCMBObject selectObj)
+    public void SelectNCMB(NCMBObject selectObj)
     {
         _signalingNCMB = new NCMB_RTC();
         var json = JsonConverter.ToJson(new NCMBStateData(NCMBStateData.MyNCMBstate.SELECTEDROOM));

@@ -16,6 +16,7 @@ public class UIBase : MonoBehaviour
     public UIState _NowUIState { get { return _nowUIstate; } }
     [SerializeField] bool _isOperateUI = true;
     public bool _IsOperateUI { get { return _isOperateUI; } }
+    UIController _myUIController;
     #region キャッシュ
     Canvas _myCanvas;
     public RectTransform _myPanel { get; private set; }
@@ -56,6 +57,11 @@ public class UIBase : MonoBehaviour
         _myCanvas.sortingOrder = i;
     }
 
+    public void SetUIController(UIController uictrl)
+    {
+        _myUIController = uictrl;
+    }
+
     public void SetUIState(UIState target)
     {
         _nowUIstate = target;
@@ -83,20 +89,20 @@ public class UIBase : MonoBehaviour
     public void AddUI(UIBase next)
     {
         if (_nowUIstate != UIState.ACTIVE) return;
-        WaitAction.Instance.CoalWaitAction_frame(()=>UIController.Instance.AddUI(next),1);
+        WaitAction.Instance.CoalWaitAction_frame(()=>_myUIController.AddUI(next),1);
         
     }
 
     public void CloseUI(UIBase target)
     {
         if (_nowUIstate != UIState.ACTIVE) return;
-        WaitAction.Instance.CoalWaitAction_frame(() => UIController.Instance.CloseUI(target), 1);
+        WaitAction.Instance.CoalWaitAction_frame(() => _myUIController.CloseUI(target), 1);
     }
 
     public void CloseToUI(UIBase next)
     {
         if (_nowUIstate != UIState.ACTIVE) return;
-        WaitAction.Instance.CoalWaitAction_frame(() => UIController.Instance.CloseToUI(next), 1);
+        WaitAction.Instance.CoalWaitAction_frame(() => _myUIController.CloseToUI(next), 1);
     }
     #endregion
 
