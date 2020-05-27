@@ -2288,7 +2288,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 216560212183506430}
         m_MethodName: DeleteNCMB_onclick
         m_Mode: 1
         m_Arguments:

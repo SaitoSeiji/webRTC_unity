@@ -236,7 +236,6 @@ public class NCMB_RTC
     {
         NCMBQuery<NCMBObject> query = new NCMBQuery<NCMBObject>("NCMB_RTC");
         query.WhereEqualTo("serchID", serchID);
-        NCMBObject tempObj = null;
         query.FindAsync((List<NCMBObject> objlist, NCMBException e) =>
         {
             if (e != null)
