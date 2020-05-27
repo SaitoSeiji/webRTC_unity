@@ -47,12 +47,17 @@ public class RTCObject_server : MonoBehaviour
     };
     private DelegateOnMessage onDataChannelMessage;//データチャンネル受信時のコールバック
 
+
     private void Awake()
     {
         WebRTC.Initialize();
         //メッセージ受信時の処理
         onDataChannelMessage = new DelegateOnMessage(bytes => {
             recieveText.text = System.Text.Encoding.UTF8.GetString(bytes);
+            if (!_connectRTC)
+            {
+                SendMsg_data("Connected");
+            }
             _connectRTC = true;
         });
         _matchingNCMB = GetComponent<MatchingNCMB>();
@@ -245,8 +250,8 @@ public class RTCObject_server : MonoBehaviour
         });
     }
     #endregion
-    
 
+    #region onclick
     public void OnclickCreatePeer()
     {
         CreatePeer();
@@ -276,6 +281,17 @@ public class RTCObject_server : MonoBehaviour
     {
         RecieveIceCandidate();
     }
+
+    public void Onclicl_setState_Offer()
+    {
+        SetState(RTCTYPE.OFFER);
+    }
+    public void Onclicl_setState_Answer()
+    {
+        SetState(RTCTYPE.ANSWER);
+    }
+    #endregion
+    #region public
     public void SendMsg_text()
     {
         localDataChannel.Send(sendText.text);
@@ -285,7 +301,13 @@ public class RTCObject_server : MonoBehaviour
         localDataChannel.Send(data);
     }
 
+    public void SetState(RTCTYPE type)
+    {
+        if (_signalingNCMB._MyNCMBState != NCMBStateData.MyNCMBstate.NONE) return;
+        _rtcType = type;
+    }
 
+    #endregion
     //裏方======================================
     void OnIceConnectionChange(RTCPeerConnection pc, RTCIceConnectionState state)
     {

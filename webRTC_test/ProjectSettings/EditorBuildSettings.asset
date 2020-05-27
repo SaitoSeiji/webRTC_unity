@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/remoteConnectTe.unity
+    guid: 576a0379ee1a9fe4fbf912aad9a3a8ec
   m_configObjects: {}
