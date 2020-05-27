@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/remoteConnectTe.unity
+    path: Assets/aoji_RTC_package_0527/Scenes/remoteConnectTe.unity
     guid: 576a0379ee1a9fe4fbf912aad9a3a8ec
+  - enabled: 1
+    path: Assets/aoji_RTC_package_0527/Scenes/localConnectTest.unity
+    guid: 66d372e00c99748489f4fd1bd9cf2aaf
   m_configObjects: {}
